@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+# other
+networks/
+figures/
+run/init_conditions/initial_conditions.csv
