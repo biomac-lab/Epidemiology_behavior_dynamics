@@ -77,16 +77,16 @@ Besides, the other entries to the model are the `network_type`, the `network_nam
 
 #### Simulation for cluster analysis
 
-In order to analyse how the community structures (i.e. clusters or hubs) affected infection and behavior, several initial conditions are tested. To generate this initial conditions, run:--network_name scale_free_5000 --type_sim local --beta 6.0 --sigma 1.0 && cd -
+In order to analyse how the community structures (i.e. clusters or hubs) affected infection and behavior, several initial conditions are tested. To generate this initial conditions for a network with 5000 individuals, run:
 
-    python run/init_conditions/create_init_conditios.py
+    python run/init_conditions/create_init_conditions.py --num_nodes 5000
 
-Each iteration of the simulation records the state of each invididual node and is saved in a `.txt` file. You will need to specify `network_type`, `network_name` and the `type_sim` as mentioned above. The infection probability `beta` and awareness `sigma` are also required. The number of checkpoitns to be saved is 8, however you can change it by addind `--num_checkpoints <num>` to the command. If you want to change the number of iterrations (*iters*), add `--n_iters <iters>` to the command. To change the length of simulation (*days*) add `--max_time <days>`. The execution is then: `python run/init_conditions/run_checkpoints.py --network_type <> --network_name <> --type_sim <> --beta <> --sigma <>`. Remember that the number of nodes needs to be specified in the `config.csv` file.
+Each iteration of the simulation records the state of each invididual node and is saved in a `.txt` file. You will need to specify `network_type`, `network_name` and the `type_sim` as mentioned above. The infection probability `beta` and awareness `sigma` are also required. The number of checkpoitns to be saved is 8, however you can change it by addind `--num_checkpoints <num>` to the command. If you want to change the number of iterrations (*iters*), add `--n_iters <iters>` to the command. To change the length of simulation (*days*) add `--max_time <days>`. The execution is then: `python run/init_conditions/run_checkpoints.py --network_type <> --network_name <> --num_nodes <> --type_sim <> --beta <> --sigma <>`. Remember that the number of nodes needs to be specified in the `config.csv` file.
 
 ##### For for saving the checkpoint of the simulations executed over a scale-free network with 5000 nodes in both infomation transmission scheme (as shown in the paper)
 
-    python run/init_conditions/run_checkpoints.py --network_type scale_free --network_name scale_free_5000 --type_sim local --beta 6.0 --sigma 1.0
-    python run/init_conditions/run_checkpoints.py --network_type scale_free --network_name scale_free_5000 --type_sim global --beta 6.0 --sigma 1.0
+    python run/run_checkpoints.py --network_type scale_free --network_name scale_free_5000 --num_nodes 5000 --type_sim local --beta 6.0 --sigma 1.0
+    python run/run_checkpoints.py --network_type scale_free --network_name scale_free_5000 --num_nodes 5000 --type_sim global --beta 6.0 --sigma 1.0
 
 ### Figures generation
 

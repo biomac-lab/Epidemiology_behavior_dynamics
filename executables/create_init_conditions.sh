@@ -1,1 +1,0 @@
-cd run/init_conditions && python create_init_conditions.py && cd - && cd -

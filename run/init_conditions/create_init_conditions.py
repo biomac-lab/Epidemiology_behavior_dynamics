@@ -7,6 +7,8 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Network simulations.')
 
+parser.add_argument('--num_nodes', type=int, default=1000,
+                    help='Number of nodes for specific network...')
 parser.add_argument('--num_ic', type=int, default=10,
                     help='Number of initial contions to generate')
 
@@ -17,12 +19,11 @@ IC = pd.DataFrame(columns =['ic_index', 'I', 'D'])
 import sys
 sys.path.append('../')
 
-main_path = os.path.split(os.getcwd())[0]
-config_path = os.path.split(os.getcwd())[0]+'/config.csv'
+main_path = os.path.split(os.getcwd())[0] + '/Epidemiology_behavior_dynamics'
+config_path = main_path + '/config.csv'
 config_data = pd.read_csv(config_path, sep=',', header=None, index_col=0)
 
-N = int(config_data.loc['num_nodes'][1])
-
+N = args.num_nodes
 
 IC['ic_index'] = list(range(args.num_ic))
 IC = IC.set_index('ic_index')
@@ -37,6 +38,6 @@ for iter_ic in range(args.num_ic):
 
 D = np.fromstring(D, sep='|')
 
-IC.to_csv('init_conditions/initial_conditions.csv')
+IC.to_csv(os.path.join(main_path,'run','init_conditions','initial_conditions.csv'))
 
 print('Initial conditions created')

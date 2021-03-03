@@ -1,1 +1,0 @@
-cd run && python run_sims.py --network_type scale_free --network_name scale_free_100 --type_sim global && cd -
