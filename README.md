@@ -112,4 +112,6 @@ In order to plot the temporal dynamics of the simulation, there are few things t
 
 #### Clustered dynamics over a scale-free network
 
+We performe cluster analysis through ploting each cluster/community dynamics over time, we do this for the 3 biggest clusters. To achive this, one must have runned simulation for each time checkpoint (explained earlier). Here, we need to specify the `network_type`, `network_name`, `num_nodes`, `iterations`, `beta_select`, `beta_key`, `sigma_select`, and `sigma_key`. Note that here you need to specify the *beta* and *sigma* values and keys. Then, for visualizing clusters in the scale-free network with 5000 individuals we should run:
 
+    python plots/plot_cluster_dynamics.py --network_type scale_free --network_name scale_free_5000 --num_nodes 5000 --iterations 10 --beta_select 0.6 --beta_key 060 --sigma_select 1.0 --sigma_key 100
