@@ -64,8 +64,6 @@ df_params['beta'] = beta
 df_params['sigma'] = sigma 
 df_params['R0'] = R0
 
-net = 'scale_free'
-
 colors_plt = [ 'tab:red', 'royalblue', 'green', 'tab:purple', 'tab:cyan', 'tab:orange' ]
 
 # Read results
@@ -73,14 +71,14 @@ fig, ax = plt.subplots(1,2,figsize=(20, 7))
 
 for idx, r in tqdm(df_params.iterrows()):    
     #Read global results
-    path_to_results_local = os.path.join(results_path, str(num_nodes)+'_seed_checkpoints_new', 'local', net, 'dynamics_beta_{}_sigma_{}'.format(r['beta_key'], r['sigma_key']) +'.csv')
+    path_to_results_local = os.path.join(results_path, str(num_nodes), 'local', args.network_type, 'dynamics_beta_{}_sigma_{}'.format(r['beta_key'], r['sigma_key']) +'.csv')
     res_local = pd.read_csv(path_to_results_local, usecols=['sim_id', 'time', 'S', 'I', 'C','D'])
     res_local_plot = res_local.copy()
     res_local_plot[['S','I','C','D']] = res_local_plot[['S','I','C','D']]/num_nodes
     res_local_plot['type'] = ['local'] * len(res_local_plot)
 
     #Read local results
-    path_to_results_glob = os.path.join(results_path, str(num_nodes)+'_seed_checkpoints_new', 'global', net, 'dynamics_beta_{}_sigma_{}'.format(r['beta_key'], r['sigma_key']) +'.csv')
+    path_to_results_glob = os.path.join(results_path, str(num_nodes), 'global', args.network_type, 'dynamics_beta_{}_sigma_{}'.format(r['beta_key'], r['sigma_key']) +'.csv')
     res_glob = pd.read_csv(path_to_results_glob, usecols=['sim_id', 'time', 'S', 'I', 'C','D'])
     res_glob_plot = res_glob.copy()
     res_glob_plot[['S','I','C','D']] = res_glob_plot[['S','I','C','D']]/num_nodes
@@ -136,10 +134,13 @@ for idx, r in tqdm(df_params.iterrows()):
     ax[1].set_ylim([-0.1,1.1])
     plt.tight_layout()
 
+if not os.path.isdir( os.path.join(figures_path, 'dynamics', str(num_nodes)) ):
+        os.makedirs( os.path.join(figures_path, 'dynamics', str(num_nodes)) )
 
+path_save = os.path.join(figures_path, 'dynamics', str(num_nodes))
 
-# plt.savefig(os.path.join(figures_path, 'dynamics', '{}_beta_{}_dynamics.png'.format(net,'0.9')), 
-#                             dpi=400, transparent = False, bbox_inches = 'tight', pad_inches = 0.1)
+plt.savefig(os.path.join(path_save, '{}_beta_{}_dynamics.png'.format(args.network_type,str(r['sigma_key']))), 
+                            dpi=400, transparent = False, bbox_inches = 'tight', pad_inches = 0.1)
 plt.show()
 
 
@@ -147,7 +148,7 @@ plt.show()
 fig, ax = plt.subplots(2,1,figsize=(9, 8))
 for idx, r in tqdm(df_params.iterrows()):
     # Read global results
-    path_to_results_local = os.path.join(results_path, str(num_nodes), 'local', 'scale_free', 'dynamics_beta_{}_sigma_{}'.format(r['beta_key'], r['sigma_key']) +'.csv')
+    path_to_results_local = os.path.join(results_path, str(num_nodes), 'local', args.network_type, 'dynamics_beta_{}_sigma_{}'.format(r['beta_key'], r['sigma_key']) +'.csv')
     res_local = pd.read_csv(path_to_results_local, usecols=['sim_id', 'time', 'S', 'I', 'C','D'])
     res_local_plot = res_local.copy()
     res_local_plot[['S','I','C','D']] = res_local_plot[['S','I','C','D']]/num_nodes
@@ -185,14 +186,14 @@ for idx, r in tqdm(df_params.iterrows()):
     fig, ax = plt.subplots(2,1,figsize=(9, 8))
 
     # Read global results
-    path_to_results_local = os.path.join(results_path, str(num_nodes), 'local', 'scale_free', 'dynamics_beta_{}_sigma_{}'.format('060', '100') +'.csv')
+    path_to_results_local = os.path.join(results_path, str(num_nodes), 'local', args.network_type, 'dynamics_beta_{}_sigma_{}'.format('060', '100') +'.csv')
     res_local = pd.read_csv(path_to_results_local, usecols=['sim_id', 'time', 'S', 'I', 'C','D'])
     res_local_plot = res_local.copy()
     res_local_plot[['S','I','C','D']] = res_local_plot[['S','I','C','D']]/num_nodes
     res_local_plot['type'] = ['Local'] * len(res_local_plot)
 
     # Read local results
-    path_to_results_glob = os.path.join(results_path, str(num_nodes), 'global', 'scale_free', 'dynamics_beta_{}_sigma_{}'.format('060', '100') +'.csv')
+    path_to_results_glob = os.path.join(results_path, str(num_nodes), 'global', args.network_type, 'dynamics_beta_{}_sigma_{}'.format('060', '100') +'.csv')
     res_glob = pd.read_csv(path_to_results_glob, usecols=['sim_id', 'time', 'S', 'I', 'C','D'])
     res_glob_plot = res_glob.copy()
     res_glob_plot[['S','I','C','D']] = res_glob_plot[['S','I','C','D']]/num_nodes
@@ -222,5 +223,5 @@ for idx, r in tqdm(df_params.iterrows()):
         os.makedirs( os.path.join(figures_path, 'dynamics', str(num_nodes), 'labels') )
 
     path_save = os.path.join(figures_path, 'dynamics', str(num_nodes), 'labels')
-    plt.savefig(os.path.join(path_save, 'sylelabel_scale_free_beta_{}_dynamics.png'.format(str(r['beta_key']))), 
+    plt.savefig(os.path.join(path_save, 'sylelabel_beta_{}_dynamics.png'.format(str(r['beta_key']))), 
                                 dpi=400, transparent = False, bbox_inches = 'tight', pad_inches = 0.1)
