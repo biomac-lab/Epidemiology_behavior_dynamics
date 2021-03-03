@@ -17,56 +17,53 @@ parser = argparse.ArgumentParser(description='Network simulations.')
 
 parser.add_argument('--network_type', type=str, default='scale_free',
                     help='Network type for storing...')
-parser.add_argument('--network_name', type=str, default='new_scale_free_5000',
+parser.add_argument('--network_name', type=str, default='scale_free_1000',
                     help='Network type for storing...')
-parser.add_argument('--iterations', type=str, default='10',
+parser.add_argument('--num_nodes', type=int, default=1000,
+                    help='Number of nodes for specific network...')
+parser.add_argument('--iterations', type=int, default=10,
                     help='Selected iterations for plotting...')
-parser.add_argument('--n_clusters', type=str, default='3',
+parser.add_argument('--n_clusters', type=int, default=3,
                     help='Selected iterations for plotting...')
-parser.add_argument('--beta_select', type=str, default='0.6',
+parser.add_argument('--beta_select', type=float, default=0.6,
                     help='Selected beta for plotting...')
-parser.add_argument('--sigma_select', type=str, default='1.0',
+parser.add_argument('--beta_key', type=str, default='060',
                     help='Selected beta for plotting...')
-parser.add_argument('--type_sim', default='global',type=str, 
-                    help='For running local or global simulation')
+parser.add_argument('--sigma_select', type=float, default=1.0,
+                    help='Selected beta for plotting...')
+parser.add_argument('--sigma_key', type=str, default='100',
+                    help='Selected beta for plotting...')
 
 args = parser.parse_args()
 
-# sigma_search = pd.read_csv(args.awareness_path, dtype={'key':str, 'value':float})
-# beta_search  = pd.read_csv(args.infection_prob_path, dtype={'key':str, 'value':float})
 
-
-config_data = pd.read_csv('config.csv', sep=',', header=None, index_col=0)
+main_path = os.path.split(os.getcwd())[0] + '/Epidemiology_behavior_dynamics'
+config_path = main_path + '/config.csv'
+config_data = pd.read_csv(config_path, sep=',', header=None, index_col=0)
 
 networks_path = config_data.loc['networks_dir'][1]
 results_path  = config_data.loc['results_dir'][1]
 figures_path  = config_data.loc['figures_dir'][1]
-num_nodes     = int(config_data.loc['num_nodes'][1])
-if args.network_name == 'new_scale_free_5000':
-    num_nodes = 5000
+num_nodes     = args.num_nodes
 
 # Path to checkpoints
-game_checkpoint_path_global = os.path.join(results_path, num_nodes, 'global', args.network_type,'checkpoints')
-disease_checkpoint_path_global = os.path.join(results_path, num_nodes, 'global', args.network_type,'checkpoints')
+game_checkpoint_path_global = os.path.join(results_path, str(num_nodes)+'_seed_checkpoints_new', 'global', args.network_type,'checkpoints')
+disease_checkpoint_path_global = os.path.join(results_path, str(num_nodes)+'_seed_checkpoints_new', 'global', args.network_type,'checkpoints')
 
-game_checkpoint_path_local = os.path.join(results_path, num_nodes, 'local', args.network_type,'checkpoints')
-disease_checkpoint_path_local = os.path.join(results_path, num_nodes, 'local', args.network_type,'checkpoints')
+game_checkpoint_path_local = os.path.join(results_path, str(num_nodes)+'_seed_checkpoints_new', 'local', args.network_type,'checkpoints')
+disease_checkpoint_path_local = os.path.join(results_path, str(num_nodes)+'_seed_checkpoints_new', 'local', args.network_type,'checkpoints')
 
 # Load network
-G = nx.read_gpickle( os.path.join(networks_path, args.network_name) )
+G = nx.read_gpickle( os.path.join(main_path, networks_path, str(num_nodes), args.network_name) )
 
 
 # Get communities
-from get_clusters import get_partition
-
 partition, n_cluster, cluster_nodes, top_clusters, top_cluster_nodes = get_partition(G, n_biggest=args.n_clusters) #n_biggest=3)
 
 
 # Get cluster dynamics
-from get_clusters import cluster_dynamics
-
-df_cluster_dyncs_global = top_cluster_dynamics(top_cluster_nodes, disease_checkpoint_path_global, game_checkpoint_path_global, beta=args.beta_select, sigma=args.sigma_select)
-df_cluster_dyncs_local = top_cluster_dynamics(top_cluster_nodes, disease_checkpoint_path_local, game_checkpoint_path_local, beta=args.beta_select, sigma=args.sigma_select)
+df_cluster_dyncs_global = cluster_dynamics(top_cluster_nodes, disease_checkpoint_path_global, game_checkpoint_path_global, beta=args.beta_select, sigma=args.sigma_select)
+df_cluster_dyncs_local = cluster_dynamics(top_cluster_nodes, disease_checkpoint_path_local, game_checkpoint_path_local, beta=args.beta_select, sigma=args.sigma_select)
 
 
 ## Plot results
@@ -87,9 +84,9 @@ for idx, clust in tqdm(enumerate(n_top_clusters), total=len(n_top_clusters)):
 
     # For global
     df_clust_i_glob = pd.DataFrame(df_cluster_dyncs_global[clust_mask_global])
-    df_clust_i_glob['type'] = ['Local'] * len(df_clust_i_glob)
+    df_clust_i_glob['type'] = ['Global'] * len(df_clust_i_glob)
     df_clust_i_loc  = pd.DataFrame(df_cluster_dyncs_local[clust_mask_local])
-    df_clust_i_loc['type'] = ['Global'] * len(df_clust_i_loc)
+    df_clust_i_loc['type'] = ['Local'] * len(df_clust_i_loc)
 
     df_res = [df_clust_i_loc, df_clust_i_glob]
     df_res_c = pd.concat(df_res)
@@ -105,7 +102,7 @@ for idx, clust in tqdm(enumerate(n_top_clusters), total=len(n_top_clusters)):
                   alpha=0.5)
     ax[0].get_legend().remove()
     #ax[0].lines[0].set_linestyle("--")
-    ax[0].set_title(r'Clustered disease dynamics $R_0=4.2$ $\sigma={}$ '.format(sigma),fontsize=22)
+    ax[0].set_title(r'Clustered disease dynamics $R_0=4.2$ $\sigma={}$ '.format(str(args.sigma_select)),fontsize=22)
     ax[0].set_xlabel(r'Days',fontsize=21)
     ax[0].xaxis.set_tick_params(labelsize=20)
     ax[0].yaxis.set_tick_params(labelsize=20)
@@ -121,7 +118,7 @@ for idx, clust in tqdm(enumerate(n_top_clusters), total=len(n_top_clusters)):
                   alpha = 0.5)
     ax[1].get_legend().remove()
     #ax[0].lines[0].set_linestyle("--")
-    ax[1].set_title(r'Clustered behavioral dynamics $R_0=4.2$ $\sigma={}$ '.format(sigma),fontsize=22)
+    ax[1].set_title(r'Clustered behavioral dynamics $R_0=4.2$ $\sigma={}$ '.format(str(args.sigma_select)),fontsize=22)
     ax[1].set_xlabel(r'Days',fontsize=21)
     ax[1].xaxis.set_tick_params(labelsize=20)
     ax[1].yaxis.set_tick_params(labelsize=20)
@@ -130,14 +127,12 @@ for idx, clust in tqdm(enumerate(n_top_clusters), total=len(n_top_clusters)):
     ax[1].set_ylim([-0.1,1.1])
     plt.tight_layout()
 
-plt.savefig(os.path.join(figures_path,'dynamics', 'new_cluster_dynamics_sigma_{}.png'.format(sigma)), 
+if not os.path.isdir( os.path.join(figures_path, 'dynamics', str(num_nodes)) ):
+        os.makedirs( os.path.join(figures_path, 'dynamics', str(num_nodes)) )
+im_path_save = os.path.join(figures_path, 'dynamics', str(num_nodes))
+plt.savefig(os.path.join(im_path_save, 'new_cluster_dynamics_sigma_{}_beta_{}.png'.format(str(args.sigma_select),str(args.beta_select))), 
                              dpi=400, transparent = False, bbox_inches = 'tight', pad_inches = 0.1)
-#plt.show()
-import os
-os.system('say "your program has finished" ')
 
-
-plt.show()
 
 ### save legends
 fig, ax = plt.subplots(2,1,figsize=(9, 8))
@@ -168,9 +163,12 @@ for idx, clust in tqdm(enumerate(n_top_clusters), total=len(n_top_clusters)):
 
     plt.figlegend(bbox_to_anchor=(0.9,0.4), fontsize=22)
 
-plt.savefig(os.path.join(figures_path, 'dynamics', 'new_colorlabel_cluster_dynamics.png'), 
+if not os.path.isdir( os.path.join(figures_path, 'dynamics', str(num_nodes), 'labels') ):
+        os.makedirs( os.path.join(figures_path, 'dynamics', str(num_nodes), 'labels') )
+save_path = os.path.join(figures_path, 'dynamics', str(num_nodes), 'labels')
+plt.savefig(os.path.join(save_path, 'new_colorlabel_cluster_dynamics.png'), 
                              dpi=400, transparent = False, bbox_inches = 'tight', pad_inches = 0.1)
-plt.show()
+#plt.show()
 
 #### save type
 fig, ax = plt.subplots(2,1,figsize=(9, 8))
@@ -203,7 +201,6 @@ plt.figlegend(bbox_to_anchor=(0.7,0.4), fontsize=22)
 
 plt.savefig(os.path.join(figures_path, 'dynamics', 'style_cluster_dynamics.png'), 
                              dpi=400, transparent = False, bbox_inches = 'tight', pad_inches = 0.1)
-plt.show()
 
 
 
@@ -237,13 +234,8 @@ def plot_G(G, communities, not_comms, plot_title, nodecmap,figures_path=figures_
             width       = .2,
             with_labels = False
             )
-    plt.savefig(os.path.join(figures_path,'graph_cluster_dynamics_new_6clus.png'), 
+    plt.savefig(os.path.join(figures_path,'networks',str(num_nodes),'graph_cluster_dynamics_new_6clus.png'), 
                               dpi=400, transparent = True, bbox_inches = 'tight', pad_inches = 0.1)
-    plt.show()
-# G_1000 = nx.read_gpickle( os.path.join(networks_path, 'scale_free_1000') )
-# partition_1000, n_cluster_1000, cluster_nodes_other_node_cluster1000, top_clusters_1000, top_cluster_nodes_1000 = get_partition(G_1000, n_biggest=3)
-
-
 
 
 n_top_clusters = list(top_cluster_nodes.keys())
@@ -279,99 +271,3 @@ for n, c in node_cluster.items():
         node_cmap.append(colors_plt[5])
 
 plot_G(G, node_cluster, other_node_cluster, 'Clustered graph', node_cmap)
-
-######################### 
-# Graph states
-
-
-def plot_steady(G, states, nodecmap,figures_path=figures_path):
-
-    #n_comms = max(communities.values())
-    pos     = nx.kamada_kawai_layout(G)
-
-    plt.figure(figsize=(12,12))
-
-    nx.draw(G, pos,
-            nodelist    = list(states.keys()),
-            node_size   = 12,
-            #cmap        = cmap,
-            node_color  = nodecmap,
-            edge_color  = 'gray',
-            width       = .2,
-            with_labels = False
-            )
-    plt.savefig(os.path.join(figures_path,'graph_states_end.png'), 
-                              dpi=400, transparent = True, bbox_inches = 'tight', pad_inches = 0.1)
-    plt.show()
-# G_1000 = nx.read_gpickle( os.path.join(networks_path, 'scale_free_1000') )
-# partition_1000, n_cluster_1000, cluster_nodes_other_node_cluster1000, top_clusters_1000, top_cluster_nodes_1000 = get_partition(G_1000, n_biggest=3)
-
-
-nodes = [node for node in G.nodes()]
-state = graph_end_states.tolist()
-
-node_state = dict(zip(nodes,state))
-colors_plt = [ 'palegreen', 'dodgerblue', 'darkorange', 'darkred'] #, 'tab:cyan', 'tab:orange' ]
-node_cmap = []
-for n, s in node_state.items():
-    if s == 0:  # cooperator
-        node_cmap.append(colors_plt[0])
-    if s == 1:
-        node_cmap.append(colors_plt[1])
-    if s == 2:
-        node_cmap.append(colors_plt[2])
-    if s == 3:
-        node_cmap.append(colors_plt[3])
-
-
-plot_steady(G, node_state, node_cmap)
-
-
-
-def plot_steady_games(G, states, nodecmap,figures_path=figures_path):
-
-    #n_comms = max(communities.values())
-    pos     = nx.kamada_kawai_layout(G)
-
-    plt.figure(figsize=(12,12))
-
-    nx.draw(G, pos,
-            nodelist    = list(states.keys()),
-            node_size   = 12,
-            #cmap        = cmap,
-            node_color  = nodecmap,
-            edge_color  = 'gray',
-            width       = .2,
-            with_labels = False
-            )
-    plt.savefig(os.path.join(figures_path,'graph_game_states_end_t30.png'), 
-                              dpi=400, transparent = True, bbox_inches = 'tight', pad_inches = 0.1)
-    #plt.show()
-
-
-nodes = [node for node in G.nodes()]
-state = graph_end_states
-node_state = dict(zip(nodes,state))
-colors_plt = [ 'deepskyblue', 'darkred']
-node_cmap = []
-for n, s in node_state.items():
-    if s == 0:  # cooperator
-        node_cmap.append(colors_plt[0])
-    if s == 1:  # defector
-        node_cmap.append(colors_plt[1])
-
-plot_steady_games(G, node_state, node_cmap)
-
-import os
-os.system('say "your program has finished" ')
-
-# %%
-def gamma_inference(G):
-    # Fit node degree distribution with powerlaw
-    # G: undirected scale-free graph
-    degree_vals = sorted([d for n,d in G.degree()], reverse=True)
-    fit = powerlaw.Fit(degree_vals, xmin=1)
-    fig = fit.plot_pdf(color='b', linewidth=2)
-    fit.power_law.plot_pdf(color='g', linestyle='--', ax=fig)
-    gamma = fit.alpha
-    return gamma
