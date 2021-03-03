@@ -1,3 +1,4 @@
+import config as cf
 import numpy as np
 import pandas as pd
 import os
@@ -7,6 +8,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from models import sis_replicator
+from models.get_clusters import get_partition, cluster_dynamics
+assert cf
 
 import argparse 
 
