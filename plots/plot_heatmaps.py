@@ -198,7 +198,12 @@ fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap='gist_heat_r'),
                                    cax=ax, orientation='horizontal')
 ax.tick_params(labelsize=22)
 ax.set_xlabel(r'Infected fraction $\bar{I}$', fontsize=22)
-plt.savefig(os.path.join(figures_path, 'heatmaps', 'epid_label.png'), 
+
+if not os.path.isdir( os.path.join(figures_path, 'heatmaps', str(num_nodes), 'labels') ):
+    os.makedirs ( os.path.join(figures_path, 'heatmaps', str(num_nodes), 'labels') )
+
+path_save = os.path.join(figures_path, 'heatmaps', str(num_nodes), 'labels')
+plt.savefig(os.path.join(path_save, 'epid_label.png'), 
                              dpi=400, transparent = False, bbox_inches = 'tight', pad_inches = 0.1)
 
 fig, ax = plt.subplots(figsize=(11.5,2))
@@ -210,5 +215,7 @@ fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap='RdYlGn'),
                                    cax=ax, orientation='horizontal')
 ax.tick_params(labelsize=22)
 ax.set_xlabel(r'Cooperating fraction $\bar{c}$', fontsize=22)
-plt.savefig(os.path.join(figures_path, 'heatmaps', 'game_label.png'), 
+
+
+plt.savefig(os.path.join(path_save, 'game_label.png'), 
                              dpi=400, transparent = False, bbox_inches = 'tight', pad_inches = 0.1)

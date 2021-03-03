@@ -15,67 +15,76 @@ parser.add_argument('--network_type', type=str, default='scale_free',
                     help='Network type for storing...')
 parser.add_argument('--network_name', type=str, default='new_scale_free_1000',
                     help='Network type for storing...')
-parser.add_argument('--awareness_path', default='param_search/sigma.csv',type=str, 
-                    help='Awareness (sigma) for running and saving simulations')
-parser.add_argument('--infection_prob_path', default='param_search/beta.csv',type=str, 
-                    help='Infection Probability (beta) for running and saving simulations')
+parser.add_argument('--num_nodes', type=int, default=1000,
+                    help='Number of nodes for specific network...')
 parser.add_argument('--type_sim', default='local',type=str, 
                     help='For running local or global simulation')
 parser.add_argument('--type_hm', default='R0',type=str, 
                     help='Define the yaxis in heatmaps (R0 or beta)')
-parser.add_argument('--type_fig', default='j',type=str, 
-                    help='Define heatmaps label display (j of s): j is nice and s is nicer')
 
 args = parser.parse_args()
 
+main_path = os.path.split(os.getcwd())[0] + '/Epidemiology_behavior_dynamics'
+config_path = main_path + '/config.csv'
+config_data = pd.read_csv(config_path, sep=',', header=None, index_col=0)
 
-config_data = pd.read_csv('config.csv', sep=',', header=None, index_col=0)
-
+networks_path = config_data.loc['networks_dir'][1]
 results_path  = config_data.loc['results_dir'][1]
 figures_path  = config_data.loc['figures_dir'][1]
-num_nodes =  int(config_data.loc['num_nodes'][1])
+awareness_path = config_data.loc['sigma_plot_dir'][1]
+infection_prob_path = config_data.loc['beta_plot_dir'][1]
+num_nodes     = args.num_nodes
 
-df_params = pd.DataFrame(columns=['beta_key', 'sigma_key','beta', 'sigma', 'R0'])
+sigma_plot = pd.read_csv(awareness_path, dtype={'key':str, 'value':float})
+beta_plot  = pd.read_csv(infection_prob_path, dtype={'key':str, 'value':float})
 
-# Selected sigmas and betas
-select_sigmas = [0.5,0.7,1.0]  #[0.2, 0.2, 0.7, 1.0]
-select_sig_k  = ['050','070','100'] #['020', '020', '070', '100']
-select_betas  = [0.6,0.6,0.6] #[0.9,0.9,0.9] #[0.9, 0.9, 0.7, 0.9]
-select_bet_k  = ['060','060','060'] #['090','090','090'] #['030', '090', '070', '090']
-gamma         = 1/7
-repro_numbers = list(np.array(select_betas)/gamma)
-num_nodes = 5000
+time2Recover = (1/7)  # gamma
 
-df_params['beta_key']  = select_bet_k
-df_params['sigma_key'] = select_sig_k
-df_params['beta']      = select_betas
-df_params['sigma']     = select_sigmas
-df_params['R0']        = repro_numbers
+df = pd.concat([sigma_plot, beta_plot], axis=1)
+
+df_params = pd.DataFrame(columns=['beta_key', 'sigma_key', 'beta', 'sigma', 'R0'])
+
+beta_key  = []
+sigma_key = []
+beta  = []
+sigma = []
+R0    = []
+for idx_sigma , r_sigma in sigma_plot.iterrows():
+    for idx_beta , r_beta in beta_plot.iterrows():
+
+        beta_key.append( r_beta['key']   )
+        sigma_key.append( r_sigma['key'] )
+        beta.append( r_beta['value'] )
+        sigma.append( r_sigma['value'] )
+        R0.append( r_beta['value'] / time2Recover )  # R0 = beta/gamma
+
+df_params['beta_key'] = beta_key  
+df_params['sigma_key'] = sigma_key 
+df_params['beta'] = beta  
+df_params['sigma'] = sigma 
+df_params['R0'] = R0
 
 net = 'scale_free'
 
-colors_plt = [ 'tab:red', 'royalblue', 'green'] #, 'tab:purple', 'tab:cyan', 'tab:orange' ]
+colors_plt = [ 'tab:red', 'royalblue', 'green', 'tab:purple', 'tab:cyan', 'tab:orange' ]
 
 # Read results
 fig, ax = plt.subplots(1,2,figsize=(20, 7))
-#fig, ax = plt.subplots(1,2,figsize=(13.2, 5))
 
-for idx, r in tqdm(df_params.iterrows()):
-    #path_to_results = os.path.join(results_path, str(num_nodes), args.type_sim, args.network_type, 'dynamics_beta_{}_sigma_{}'.format(r['beta_key'], r['sigma_key']) +'.csv')
-    
+for idx, r in tqdm(df_params.iterrows()):    
     #Read global results
     path_to_results_local = os.path.join(results_path, str(num_nodes)+'_seed_checkpoints_new', 'local', net, 'dynamics_beta_{}_sigma_{}'.format(r['beta_key'], r['sigma_key']) +'.csv')
     res_local = pd.read_csv(path_to_results_local, usecols=['sim_id', 'time', 'S', 'I', 'C','D'])
     res_local_plot = res_local.copy()
     res_local_plot[['S','I','C','D']] = res_local_plot[['S','I','C','D']]/num_nodes
-    res_local_plot['type'] = ['global'] * len(res_local_plot)
+    res_local_plot['type'] = ['local'] * len(res_local_plot)
 
     #Read local results
     path_to_results_glob = os.path.join(results_path, str(num_nodes)+'_seed_checkpoints_new', 'global', net, 'dynamics_beta_{}_sigma_{}'.format(r['beta_key'], r['sigma_key']) +'.csv')
     res_glob = pd.read_csv(path_to_results_glob, usecols=['sim_id', 'time', 'S', 'I', 'C','D'])
     res_glob_plot = res_glob.copy()
     res_glob_plot[['S','I','C','D']] = res_glob_plot[['S','I','C','D']]/num_nodes
-    res_glob_plot['type'] = ['local'] * len(res_glob_plot)
+    res_glob_plot['type'] = ['global'] * len(res_glob_plot)
 
     df_res = [res_local_plot,res_glob_plot]
     df_res_c = pd.concat(df_res)
@@ -127,6 +136,8 @@ for idx, r in tqdm(df_params.iterrows()):
     ax[1].set_ylim([-0.1,1.1])
     plt.tight_layout()
 
+
+
 # plt.savefig(os.path.join(figures_path, 'dynamics', '{}_beta_{}_dynamics.png'.format(net,'0.9')), 
 #                             dpi=400, transparent = False, bbox_inches = 'tight', pad_inches = 0.1)
 plt.show()
@@ -135,7 +146,7 @@ plt.show()
 # Figure for legend labels
 fig, ax = plt.subplots(2,1,figsize=(9, 8))
 for idx, r in tqdm(df_params.iterrows()):
-        # Read global results
+    # Read global results
     path_to_results_local = os.path.join(results_path, str(num_nodes), 'local', 'scale_free', 'dynamics_beta_{}_sigma_{}'.format(r['beta_key'], r['sigma_key']) +'.csv')
     res_local = pd.read_csv(path_to_results_local, usecols=['sim_id', 'time', 'S', 'I', 'C','D'])
     res_local_plot = res_local.copy()
@@ -161,50 +172,55 @@ for idx, r in tqdm(df_params.iterrows()):
 
     plt.figlegend(bbox_to_anchor=(0.7,0.4), fontsize=22)
 
+    if not os.path.isdir( os.path.join(figures_path, 'dynamics', str(num_nodes)) ):
+        os.makedirs( os.path.join(figures_path, 'dynamics', str(num_nodes)) )
 
-plt.savefig(os.path.join(figures_path, 'dynamics', 'colorlabel_scale_free_beta_{}_dynamics.png'.format('0.6')), 
-                             dpi=400, transparent = False, bbox_inches = 'tight', pad_inches = 0.1)
-# plt.show()
+    path_save = os.path.join(figures_path, 'dynamics', str(num_nodes))
+
+    plt.savefig(os.path.join(path_save, 'colorlabel_scale_free_beta_{}_dynamics.png'.format(str(r['beta_key']))), 
+                                dpi=400, transparent = False, bbox_inches = 'tight', pad_inches = 0.1)
 
 
-# Figure for legend sim types
-fig, ax = plt.subplots(2,1,figsize=(9, 8))
+    # Figure for legend sim types
+    fig, ax = plt.subplots(2,1,figsize=(9, 8))
 
-# Read global results
-path_to_results_local = os.path.join(results_path, str(num_nodes), 'local', 'scale_free', 'dynamics_beta_{}_sigma_{}'.format('060', '100') +'.csv')
-res_local = pd.read_csv(path_to_results_local, usecols=['sim_id', 'time', 'S', 'I', 'C','D'])
-res_local_plot = res_local.copy()
-res_local_plot[['S','I','C','D']] = res_local_plot[['S','I','C','D']]/num_nodes
-res_local_plot['type'] = ['Global'] * len(res_local_plot)
+    # Read global results
+    path_to_results_local = os.path.join(results_path, str(num_nodes), 'local', 'scale_free', 'dynamics_beta_{}_sigma_{}'.format('060', '100') +'.csv')
+    res_local = pd.read_csv(path_to_results_local, usecols=['sim_id', 'time', 'S', 'I', 'C','D'])
+    res_local_plot = res_local.copy()
+    res_local_plot[['S','I','C','D']] = res_local_plot[['S','I','C','D']]/num_nodes
+    res_local_plot['type'] = ['Local'] * len(res_local_plot)
 
-# Read local results
-path_to_results_glob = os.path.join(results_path, str(num_nodes), 'global', 'scale_free', 'dynamics_beta_{}_sigma_{}'.format('060', '100') +'.csv')
-res_glob = pd.read_csv(path_to_results_glob, usecols=['sim_id', 'time', 'S', 'I', 'C','D'])
-res_glob_plot = res_glob.copy()
-res_glob_plot[['S','I','C','D']] = res_glob_plot[['S','I','C','D']]/num_nodes
-res_glob_plot['type'] = ['Local'] * len(res_glob_plot)
+    # Read local results
+    path_to_results_glob = os.path.join(results_path, str(num_nodes), 'global', 'scale_free', 'dynamics_beta_{}_sigma_{}'.format('060', '100') +'.csv')
+    res_glob = pd.read_csv(path_to_results_glob, usecols=['sim_id', 'time', 'S', 'I', 'C','D'])
+    res_glob_plot = res_glob.copy()
+    res_glob_plot[['S','I','C','D']] = res_glob_plot[['S','I','C','D']]/num_nodes
+    res_glob_plot['type'] = ['Global'] * len(res_glob_plot)
 
-df_res = [res_local_plot,res_glob_plot]
-df_res_c = pd.concat(df_res)
+    df_res = [res_local_plot,res_glob_plot]
+    df_res_c = pd.concat(df_res)
 
-sns.lineplot( ax = ax[0],
-                data = df_res_c, 
-                x = 'time', y = 'I',
-                style='type', alpha=0.5)
-ax[0].get_legend().remove()
-ax[0].set_title(r'Disease dynamics')
-#ax[0].set_xlabel('')
-ax[0].set_xlabel(r'Days',fontsize=21)
-#ax[0].set_xticks(fontsize=20)
-ax[0].set_xticklabels('')
-ax[0].set_xlim([-0.1,151])
-ax[0].set_ylabel(r'Inf. Fraction $\bar{I}$',fontsize=21)
-#ax[0].set_yticks(fontsize=20)
-ax[0].set_ylim([-0.1,1.1])
+    sns.lineplot( ax = ax[0],
+                    data = df_res_c, 
+                    x = 'time', y = 'I',
+                    style='type', alpha=0.5)
+    ax[0].get_legend().remove()
+    ax[0].set_title(r'Disease dynamics')
+    #ax[0].set_xlabel('')
+    ax[0].set_xlabel(r'Days',fontsize=21)
+    #ax[0].set_xticks(fontsize=20)
+    ax[0].set_xticklabels('')
+    ax[0].set_xlim([-0.1,151])
+    ax[0].set_ylabel(r'Inf. Fraction $\bar{I}$',fontsize=21)
+    #ax[0].set_yticks(fontsize=20)
+    ax[0].set_ylim([-0.1,1.1])
 
-plt.figlegend(bbox_to_anchor=(0.7,0.4), fontsize=22)
+    plt.figlegend(bbox_to_anchor=(0.7,0.4), fontsize=22)
 
-plt.savefig(os.path.join(figures_path, 'dynamics', 'sylelabel_scale_free_beta_{}_dynamics.png'.format('0.6')), 
-                             dpi=400, transparent = False, bbox_inches = 'tight', pad_inches = 0.1)
+    if not os.path.isdir( os.path.join(figures_path, 'dynamics', str(num_nodes), 'labels') ):
+        os.makedirs( os.path.join(figures_path, 'dynamics', str(num_nodes), 'labels') )
 
-# plt.show()
+    path_save = os.path.join(figures_path, 'dynamics', str(num_nodes), 'labels')
+    plt.savefig(os.path.join(path_save, 'sylelabel_scale_free_beta_{}_dynamics.png'.format(str(r['beta_key']))), 
+                                dpi=400, transparent = False, bbox_inches = 'tight', pad_inches = 0.1)
