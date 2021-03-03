@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import argparse 
 import os
+from tqdm import tqdm
 
 
 parser = argparse.ArgumentParser(description='Heatmaps figures.')
@@ -12,31 +13,28 @@ parser.add_argument('--network_type', type=str, default='scale_free',
                     help='Network type for storing...')
 parser.add_argument('--network_name', type=str, default='scale_free_1000',
                     help='Network type for storing...')
-parser.add_argument('--awareness_path', default='param_search/sigma.csv',type=str, 
-                    help='Awareness (sigma) for running and saving simulations')
-parser.add_argument('--infection_prob_path', default='param_search/beta.csv',type=str, 
-                    help='Infection Probability (beta) for running and saving simulations')
+parser.add_argument('--num_nodes', type=int, default=1000,
+                    help='Number of nodes for specific network...')
 parser.add_argument('--type_sim', default='local',type=str, 
                     help='For running local or global simulation')
 parser.add_argument('--type_hm', default='R0',type=str, 
                     help='Define the yaxis in heatmaps (R0 or beta)')
-parser.add_argument('--type_fig', default='j',type=str, 
-                    help='Define heatmaps label display (j of s): j is nice and s is nicer')
 
 args = parser.parse_args()
 
-import sys
-sys.path.append('../')
-
-config_data = pd.read_csv('config.csv', sep=',', header=None, index_col=0)
+main_path = os.path.split(os.getcwd())[0] + '/Epidemiology_behavior_dynamics'
+config_path = main_path + '/config.csv'
+config_data = pd.read_csv(config_path, sep=',', header=None, index_col=0)
 
 networks_path = config_data.loc['networks_dir'][1]
 results_path  = config_data.loc['results_dir'][1]
 figures_path  = config_data.loc['figures_dir'][1]
-num_nodes =  int(config_data.loc['num_nodes'][1])
+awareness_path = config_data.loc['sigma_search_dir'][1]
+infection_prob_path = config_data.loc['beta_search_dir'][1]
+num_nodes     = args.num_nodes
 
-sigma_search = pd.read_csv(args.awareness_path, dtype={'key':str, 'value':float})
-beta_search  = pd.read_csv(args.infection_prob_path, dtype={'key':str, 'value':float})
+sigma_search = pd.read_csv(awareness_path, dtype={'key':str, 'value':float})
+beta_search  = pd.read_csv(infection_prob_path, dtype={'key':str, 'value':float})
 
 time2Recover = (1/7)  # gamma
 
@@ -64,14 +62,11 @@ df_param_run['beta_val'] = beta_val
 df_param_run['sigma_val'] = sigma_val 
 df_param_run['R0'] = R0_val
 
-from tqdm import tqdm
 list_df = []
 for idx, r in tqdm(df_param_run.iterrows(), total=df_param_run.shape[0]):
 
-    #print(r)
     path_to_results = os.path.join(results_path, str(num_nodes), args.type_sim, args.network_type, 'dynamics_beta_{}_sigma_{}'.format(r['beta_key'], r['sigma_key']) +'.csv')
     res = pd.read_csv(path_to_results, usecols=['sim_id', 'time', 'S', 'I', 'C','D'])
-
 
     # Calculate mean over iterations.
     res = res.groupby('time').mean()/num_nodes
@@ -87,14 +82,7 @@ for idx, r in tqdm(df_param_run.iterrows(), total=df_param_run.shape[0]):
 
 df_response = pd.concat(list_df)
 
-# df_response_lastweek = df_response.copy()
-# df_response_lastweek = df_response_lastweek.query("time >= 142")
-# # steady state
-# df_response_lastweek = df_response_lastweek.groupby(['beta', 'sigma']).mean()[['S', 'I', 'C','D']].reset_index()
 
-# df_response_lastweek_R0 = df_response.copy()
-# df_response_lastweek_R0 = df_response_lastweek_R0.query("time >= 142")
-# df_response_lastweek_R0 = df_response_lastweek_R0.groupby(['R0', 'sigma']).mean()[['S', 'I', 'C','D']].reset_index()
 
 def return_pivoted_df(df_to_pivot, param, var='I'):
     df_heat_map = df_to_pivot.copy()
@@ -104,7 +92,7 @@ def return_pivoted_df(df_to_pivot, param, var='I'):
     return df_heat_map
 
 
-def create_heatmaps(res_df=df_response, yaxis = args.type_hm, type_sim = args.type_sim, net_type = args.network_type, labels_as = args.type_fig, figs_path = figures_path):
+def create_heatmaps(res_df=df_response, yaxis = args.type_hm, type_sim = args.type_sim, net_type = args.network_type, figs_path = figures_path):
     ## Create a heatmap for the infected and cooperation fraction given the results
 
     df_response_lastweek = df_response.copy()
@@ -115,16 +103,10 @@ def create_heatmaps(res_df=df_response, yaxis = args.type_hm, type_sim = args.ty
     heatmap_epid = return_pivoted_df(df_response_lastweek, yaxis, 'I')
     heatmap_game = return_pivoted_df(df_response_lastweek, yaxis, 'C')
 
-    if labels_as is 's':
-        title_epid_hm = r'$\bar{}$ - {}'.format('I',type_sim)
-        title_game_hm = r'$\bar{}$ - {}'.format('c',type_sim)
-        sigma_label   = r'$\sigma$'
-        path_s        = 'heatmaps/sams_like/{}'.format(type_sim)
-    elif labels_as is 'j':
-        title_epid_hm = r'Inf. fraction $\bar{}$ - {}'.format('I',type_sim)
-        title_game_hm = r'Coop. fraction $\bar{}$ - {}'.format('c',type_sim)
-        sigma_label   = r'Awareness $\sigma$'
-        path_s        = 'heatmaps/james_like/{}'.format(type_sim)
+    title_epid_hm = r'Inf. fraction $\bar{}$ - {}'.format('I',type_sim)
+    title_game_hm = r'Coop. fraction $\bar{}$ - {}'.format('c',type_sim)
+    sigma_label   = r'Awareness $\sigma$'
+    path_s        = 'heatmaps/{}'.format(type_sim)
 
     ylabels = [r'$R_{0}$', r'$\beta_{max}$']
     if yaxis == 'R0':
@@ -138,7 +120,7 @@ def create_heatmaps(res_df=df_response, yaxis = args.type_hm, type_sim = args.ty
     cax = plt.gcf().axes[-1]
     cax.tick_params(labelsize=16) 
     ax.set_title(title_epid_hm, fontsize=21) 
-    ax.set_xlabel(sigma_label, fontsize=22) #ax.set_xlabel(r'Awereness - $\sigma$', fontsize=15)
+    ax.set_xlabel(sigma_label, fontsize=22)
     ax.set_ylabel(ylabel, fontsize=21)
 
     xticks = heatmap_epid.columns
@@ -154,18 +136,19 @@ def create_heatmaps(res_df=df_response, yaxis = args.type_hm, type_sim = args.ty
     ytickslabels = ['{:.1f}'.format(l) for l in ytickslabels]
     ax.set_yticks(keptyticksidx)
     ax.set_yticklabels(ytickslabels, fontsize=20)
-
     plt.tight_layout()
-    plt.show()
-    # Save epidemic dynamic heatmap 
+
+    # Save epidemic stability heatmap 
 
     if not os.path.isdir( figures_path ):
         os.makedirs( figures_path )
         
     if not os.path.isdir( os.path.join(figures_path, path_s, net_type ) ):
         os.makedirs( os.path.join(figures_path, path_s, net_type ) )
+
+    path_save = os.path.join(figures_path, path_s, net_type )
         
-    plt.savefig(os.path.join(figures_path, path_s, net_type, 'epid_heatmap_{}_{}_yaxis_{}.png'.format(net_type,type_sim,yaxis)), 
+    plt.savefig(os.path.join(path_save, 'epid_heatmap_{}_{}_yaxis_{}.png'.format(net_type,type_sim,yaxis)), 
                         dpi=400, transparent = False, bbox_inches = 'tight', pad_inches = 0.1)
 
     ## Game heatmap
@@ -175,7 +158,7 @@ def create_heatmaps(res_df=df_response, yaxis = args.type_hm, type_sim = args.ty
     cax = plt.gcf().axes[-1]
     cax.tick_params(labelsize=16) 
     ax.set_title(title_game_hm, fontsize=21) 
-    ax.set_xlabel(sigma_label, fontsize=22) #ax.set_xlabel(r'Awereness - $\sigma$', fontsize=15)
+    ax.set_xlabel(sigma_label, fontsize=22) 
     ax.set_ylabel(ylabel, fontsize=21)
 
     xticks = heatmap_game.columns
@@ -193,9 +176,8 @@ def create_heatmaps(res_df=df_response, yaxis = args.type_hm, type_sim = args.ty
     ax.set_yticklabels(ytickslabels, fontsize=20)
 
     plt.tight_layout()
-    #plt.show()
     # Save game dynamic heatmap 
-    plt.savefig(os.path.join(figures_path, path_s, net_type, 'game_heatmap_{}_{}_yaxis_{}.png'.format(net_type,type_sim,yaxis)), 
+    plt.savefig(os.path.join(path_save, 'game_heatmap_{}_{}_yaxis_{}.png'.format(net_type,type_sim,yaxis)), 
                              dpi=400, transparent = False, bbox_inches = 'tight', pad_inches = 0.1)
 
 
@@ -213,12 +195,11 @@ fig.subplots_adjust(bottom=0.5)
 norm = mpl.colors.Normalize(vmin=0, vmax=1)
 
 fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap='gist_heat_r'),
-                                   cax=ax, orientation='horizontal')#, label=r'Infected fraction $\bar{I}$')
+                                   cax=ax, orientation='horizontal')
 ax.tick_params(labelsize=22)
 ax.set_xlabel(r'Infected fraction $\bar{I}$', fontsize=22)
-plt.savefig(os.path.join(figures_path, 'heatmaps', 'epid_label'), 
+plt.savefig(os.path.join(figures_path, 'heatmaps', 'epid_label.png'), 
                              dpi=400, transparent = False, bbox_inches = 'tight', pad_inches = 0.1)
-#plt.show()
 
 fig, ax = plt.subplots(figsize=(11.5,2))
 fig.subplots_adjust(bottom=0.5)
@@ -226,8 +207,8 @@ fig.subplots_adjust(bottom=0.5)
 norm = mpl.colors.Normalize(vmin=0, vmax=1)
 
 fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap='RdYlGn'),
-                                   cax=ax, orientation='horizontal')#, label=r'Infected fraction $\bar{I}$')
+                                   cax=ax, orientation='horizontal')
 ax.tick_params(labelsize=22)
 ax.set_xlabel(r'Cooperating fraction $\bar{c}$', fontsize=22)
-plt.savefig(os.path.join(figures_path, 'heatmaps', 'game_label'), 
+plt.savefig(os.path.join(figures_path, 'heatmaps', 'game_label.png'), 
                              dpi=400, transparent = False, bbox_inches = 'tight', pad_inches = 0.1)

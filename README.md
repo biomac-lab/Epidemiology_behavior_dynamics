@@ -92,13 +92,16 @@ Each iteration of the simulation records the state of each invididual node and i
 
 #### Networks visualization
 
-In order to visualize the networks you will need to specify the `network_type` (i.e.  `scale_free`, `small_world ` or `grid`) and the `network_name` as it was saven in the `/networks` folder. For visualizing a (already) created scale-free network with 5000 nodes, you would run:
+In order to visualize the networks you will need to specify the `network_type` (i.e.  `scale_free`, `small_world ` or `grid`) and the `network_name` as it was saved in the `/networks` folder. For visualizing a (already) created scale-free network with 5000 nodes, you would run:
 
     python plots/plot_networks.py --network_type scale_free --network_name scale_free_5000
 
 #### Heatmaps visualization
 
-Plotting a heatmap means you have runned simulations over a range of values for `beta` and `sigma`. The values that will be considered by the function are the ones already specified on 
+Plotting a heatmap means you have runned simulations over a range of values for `beta` and `sigma`. Hence, `beta_search.csv` and `sigma_search.csv` had to be modified previously. The values that will be considered by the function for plotting are the same already specified on the `/param_search` files. The `network_type`, `network_name`, `num_nodes`, `type_sim` and `type_hm` parameters need to be specified. The later defines weather the heatmap if ploted using *beta* of *R0* in their *y* axis. An example is displayed as follows:
+
+    python plots/plot_heatmaps.py --network_type scale_free --network_name --scale_free_1000 --num_nodes 1000 --type_sim local --type_hm R0
+    python plots/plot_heatmaps.py --network_type scale_free --network_name --scale_free_1000 --num_nodes 1000 --type_sim global --type_hm R0
 
 #### Disease and behavior dynamics over networks
 
