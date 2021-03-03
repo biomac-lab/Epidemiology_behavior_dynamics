@@ -25,7 +25,7 @@ In this investigation, we account for three different types of networks where we
 
 Conversely, if you want to create a specific network (say `scale_free`, `small_world` or `grid` ) with a given number of nodes (*n*), set `--specific_network <network_name>`. To create a scale-free network with 5000 nodes, run:
 
-    python models/create_networkxs.py --num_nodes 5000 --specific_network scale_free --all False
+    python models/create_networkxs.py --num_nodes 5000 --specific_network scale_free
 
 ### Run simulations
 
@@ -52,26 +52,28 @@ And for `beta_search.csv` are:
     060,0.60
     070,0.70
 
-Besides, the other entries to the model are the `network_type`, the `network_name` (output name after creating the network(s)), the `type_sim` which may be specified as `global` or `local`, the number of iterations `n_iters` (20 by default), and the length of simulation given by `max_time` which is set to 150 days. If you want to change the number of iterations (*iters*), add `--n_iters <iters>` to the command. To change the length of simulation (*days*) add `--max_time <days>`. The execution is then: `python run/run_sims.py --network_type <> --network_name <> --type_sim <>`.
+Besides, the other entries to the model are the `network_type`, the `network_name` (output name after creating the network(s)), the `type_sim` which may be specified as `global` or `local`, the number of iterations `n_iters` (20 by default), and the length of simulation given by `max_time` which is set to 150 days. If you want to change the number of iterations (*iters*), add `--n_iters <iters>` to the command. To change the length of simulation (*days*) add `--max_time <days>`. The execution is then: `python run/run_sims.py --network_type <> --network_name <> --num_nodes <> --type_sim <>`.
 
 ##### For running simulations over a scale-free network with 1000 nodes in both information transmission scheme (as shown in the paper)
 
-    python run/run_sims.py --network_type scale_free --network_name scale_free_1000 --type_sim local
-    python run/run_sims.py --network_type scale_free --network_name scale_free_1000 --type_sim global
+    python run/run_sims.py --network_type scale_free --network_name scale_free_1000 --num_nodes 1000 --type_sim local
+    python run/run_sims.py --network_type scale_free --network_name scale_free_1000 --num_nodes 1000 --type_sim global
 
 ##### For running simulations over a scale-free network with 5000 nodes in both infomation transmission scheme (as shown in the paper)
 
-    python run/run_sims.py --network_type scale_free --network_name scale_free_1000 --type_sim local
-    python run/run_sims.py --network_type scale_free --network_name scale_free_1000 --type_sim global
+    python run/run_sims.py --network_type scale_free --network_name scale_free_5000 --num_nodes 5000 --type_sim local
+    python run/run_sims.py --network_type scale_free --network_name scale_free_5000 --num_nodes 5000 --type_sim global
 
 ##### For running simulations over a small-world and grid network with 1000 nodes in both infomation transmission scheme (as shown in the paper)
 
-    python run/run_sims.py --network_type small_work --network_name small_work_1000 --type_sim local
-    python run/run_sims.py --network_type small_work --network_name small_work_1000 --type_sim global
-    python run/run_sims.py --network_type grid --network_name grid_1000 --type_sim local
-    python run/run_sims.py --network_type grid --network_name grid_1000 --type_sim global
+    python run/run_sims.py --network_type small_work --network_name small_work_1000 --num_nodes 1000 --type_sim local
+    python run/run_sims.py --network_type small_work --network_name small_work_1000 --num_nodes 1000 --type_sim global
+    python run/run_sims.py --network_type grid --network_name grid_1000 --num_nodes 1000 --type_sim local
+    python run/run_sims.py --network_type grid --network_name grid_1000 --num_nodes 1000 --type_sim global
 
 ##### For running simulations over a ODE (as shown in the paper)
+
+    python run/run_ode.py
 
 #### Simulation for cluster analysis
 
@@ -95,6 +97,8 @@ In order to visualize the networks you will need to specify the `network_type` (
     python plots/plot_networks.py --network_type scale_free --network_name scale_free_5000
 
 #### Heatmaps visualization
+
+Plotting a heatmap means you have runned simulations over a range of values for `beta` and `sigma`. The values that will be considered by the function are the ones already specified on 
 
 #### Disease and behavior dynamics over networks
 

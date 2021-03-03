@@ -1,3 +1,5 @@
 networks_dir,networks
 figures_dir,figures
 results_dir,results
+sigma_search_dir,run/param_search/sigma_search.csv
+beta_search_dir,run/param_search/beta_search.csv

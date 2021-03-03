@@ -25,6 +25,8 @@ parser.add_argument('--type_fig', default='j',type=str,
 
 args = parser.parse_args()
 
+import sys
+sys.path.append('../')
 
 config_data = pd.read_csv('config.csv', sep=',', header=None, index_col=0)
 

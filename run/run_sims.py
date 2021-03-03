@@ -1,9 +1,10 @@
-import numpy as np
+import config as cf
 import pandas as pd
 import os
 import sys
 import networkx as nx
 from models import models
+assert cf
 
 import argparse 
 
@@ -13,6 +14,8 @@ parser.add_argument('--network_type', type=str, default='scale_free',
                     help='Network type for loadind and storing...')
 parser.add_argument('--network_name', type=str, default='scale_free_1000',
                     help='Network name for loading and storing...')
+parser.add_argument('--num_nodes', type=int, default=1000,
+                    help='Number of nodes for specific network...')
 parser.add_argument('--awareness_path', default='param_search/sigma.csv',type=str, 
                     help='Awareness (sigma) for running and saving simulations')
 parser.add_argument('--infection_prob_path', default='param_search/beta.csv',type=str, 
@@ -26,18 +29,20 @@ parser.add_argument('--max_time', default=150,type=int,
 
 args = parser.parse_args()
 
-sigma_search = pd.read_csv(args.awareness_path, dtype={'key':str, 'value':float})
-beta_search  = pd.read_csv(args.infection_prob_path, dtype={'key':str, 'value':float})
-
-main_path = os.path.split(os.getcwd())[0]
-config_path = os.path.split(os.getcwd())[0]+'/config.csv'
+main_path = os.path.split(os.getcwd())[0] + '/Epidemiology_behavior_dynamics'
+config_path = main_path + '/config.csv'
 config_data = pd.read_csv(config_path, sep=',', header=None, index_col=0)
 
 networks_path = config_data.loc['networks_dir'][1]
 results_path  = config_data.loc['results_dir'][1]
-num_nodes     = int(config_data.loc['num_nodes'][1])
+awareness_path = config_data.loc['sigma_search_dir'][1]
+infection_prob_path = config_data.loc['beta_search_dir'][1]
+num_nodes     = args.num_nodes
 
-G = nx.read_gpickle( os.path.join(networks_path, args.network_name) )
+sigma_search = pd.read_csv(awareness_path, dtype={'key':str, 'value':float})
+beta_search  = pd.read_csv(infection_prob_path, dtype={'key':str, 'value':float})
+
+G = nx.read_gpickle( os.path.join(main_path, networks_path, str(num_nodes), args.network_name) )
 
 df = pd.concat([sigma_search, beta_search], axis=1)
 

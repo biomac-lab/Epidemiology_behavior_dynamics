@@ -161,7 +161,7 @@ def run_model(model, graph, params, n_iters=10, max_time=300, num_checkpoints=1,
     chk_point = 0
     for n_iter in range(n_iters):
 
-        game_states, infection_states, payoffs = model(graph, max_time, params, local=local, reinfection=False)
+        game_states, infection_states, payoffs = model(graph, max_time, params, local=local)
 
         num_def = np.sum(game_states, axis=0)
         num_inf = np.sum(infection_states, axis=0)        

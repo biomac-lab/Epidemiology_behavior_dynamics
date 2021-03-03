@@ -5,8 +5,8 @@ from scipy.integrate import odeint
 import os
 
 
-main_path = os.path.split(os.getcwd())[0]
-config_path = os.path.split(os.getcwd())[0]+'/config.csv'
+main_path = os.path.split(os.getcwd())[0] + '/Epidemiology_behavior_dynamics'
+config_path = main_path + '/config.csv'
 config_data = pd.read_csv(config_path, sep=',', header=None, index_col=0)
 
 results_path  = config_data.loc['results_dir'][1]

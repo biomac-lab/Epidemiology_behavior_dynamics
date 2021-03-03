@@ -14,11 +14,14 @@ args = parser.parse_args()
 
 IC = pd.DataFrame(columns =['ic_index', 'I', 'D'])
 
+import sys
+sys.path.append('../')
+
 main_path = os.path.split(os.getcwd())[0]
 config_path = os.path.split(os.getcwd())[0]+'/config.csv'
 config_data = pd.read_csv(config_path, sep=',', header=None, index_col=0)
 
-N     = int(config_data.loc['num_nodes'][1])
+N = int(config_data.loc['num_nodes'][1])
 
 
 IC['ic_index'] = list(range(args.num_ic))

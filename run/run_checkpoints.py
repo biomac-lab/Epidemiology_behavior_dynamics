@@ -35,6 +35,8 @@ networks_path = config_data.loc['networks_dir'][1]
 results_path  = config_data.loc['results_dir'][1]
 num_nodes     = int(config_data.loc['num_nodes'][1])
 
+import sys
+sys.path.append('../')
 
 G = nx.read_gpickle( os.path.join(networks_path, args.network_name) )
 
@@ -56,7 +58,6 @@ from models import models
 
 
 initConditions = pd.read_csv('init_conditions/initial_conditions.csv')
-
 
 
 if args.type_sim=='local':
@@ -94,10 +95,7 @@ for i in tqdm(range(0,len(initConditions.index)), total = len(initConditions.ind
         path_to_save_checkpoints = os.path.join(results_path, str(num_nodes)+'_seed_checkpoints_new', args.type_sim, args.network_type, 'checkpoints', 'ic_0{}'.format(i))
         path_to_save_response    = os.path.join(results_path, str(num_nodes)+'_seed_checkpoints_new', args.type_sim, args.network_type, 'dynamics_beta_{}_sigma_{}'.format(r['beta_key'], r['sigma_key']) +'.csv')
 
-        df_response = models.run_model(models.sis_replicator, G , params=model_params, n_iters=args.n_iters, max_time=args.max_time, num_checkpoints=args.num_checkpoints, local=local, path_to_save_checkpoints= path_to_save_checkpoints)
+        df_response = models.run_model(models.sis_replicator, G, params=model_params, n_iters=args.n_iters, max_time=args.max_time, num_checkpoints=args.num_checkpoints, local=local, path_to_save_checkpoints= path_to_save_checkpoints)
         df_response.to_csv( path_to_save_response )
 
 print('\t DONE!\n')
-
-import os
-os.system('say "your program has finished"to_undirected
