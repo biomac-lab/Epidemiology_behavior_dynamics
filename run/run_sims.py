@@ -16,10 +16,6 @@ parser.add_argument('--network_name', type=str, default='scale_free_1000',
                     help='Network name for loading and storing...')
 parser.add_argument('--num_nodes', type=int, default=1000,
                     help='Number of nodes for specific network...')
-parser.add_argument('--awareness_path', default='param_search/sigma.csv',type=str, 
-                    help='Awareness (sigma) for running and saving simulations')
-parser.add_argument('--infection_prob_path', default='param_search/beta.csv',type=str, 
-                    help='Infection Probability (beta) for running and saving simulations')
 parser.add_argument('--type_sim', default='global',type=str, 
                     help='For running local or global simulation')
 parser.add_argument('--n_iters', default=20,type=int, 
