@@ -80,8 +80,8 @@ def run_sims_SIS_replicator(sigma, prob_infect):
 
 t_max = 150
 t = np.linspace(0, t_max, t_max*2)
-sigma_search = np.linspace(0,1,100) 
-beta_search  = np.linspace(0,1,100) 
+sigma_search = np.linspace(0,1,100)
+beta_search  = np.linspace(0,1,100)
 from tqdm import tqdm
 for idx_p, prob in enumerate(tqdm(beta_search)):
     for idx_s, sigma in enumerate(sigma_search):
