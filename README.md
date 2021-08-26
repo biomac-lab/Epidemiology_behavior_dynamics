@@ -32,7 +32,7 @@ Conversely, if you want to create a specific network (say `scale_free`, `small_w
 
 ### Run simulations
 
-In order to run a simulation, a combination of the infection probability (*beta*) and awareness (*sigma*) must be given. This combination are specified on the files `beta_search.csv` and `sigma_search.csv` located on the `run/init_conditions` folder. Each file will contain a row with the parameter value and a key for saving the result (as shown below). We test the model on an interval between 0-1, this means the files `<>_search.csv` contains values in the range of 0 and 1 with space intervals of 0.02 as decribed below:
+In order to run a simulation, a combination of the infection probability (*beta*) and awareness (*sigma*) must be given. This combination are specified on the files `beta_search.csv` and `sigma_search.csv` located on the `run/param_search` folder. Each file will contain a row with the parameter value and a key for saving the result (as shown below). We test the model on an interval between 0-1, this means the files `<>_search.csv` contains values in the range of 0 and 1 with space intervals of 0.02 as decribed below:
 
     key,value
     000,0.00,
