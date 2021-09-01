@@ -3,7 +3,7 @@ import numpy as np
 import random
 import os
 
-from beta_cooperation import beta_cooperation
+from models.beta_cooperation import beta_cooperation
 
 ##########################################
 # Game dynamics              

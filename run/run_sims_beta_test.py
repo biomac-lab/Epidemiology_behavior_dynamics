@@ -107,7 +107,7 @@ for idx, r in tqdm(df_param_run.iterrows()):
         continue
     print( 'Running for beta={}, sigma={} \r'.format(r['beta_val'], r['sigma_val']) )
 
-    df_response = models_beta_test.run_model(models.sis_replicator, 
+    df_response = models_beta_test.run_model(models_beta_test.sis_replicator, 
                                             G, 
                                             params=model_params, 
                                             n_iters=n_iters, 
