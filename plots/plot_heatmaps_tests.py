@@ -51,7 +51,6 @@ sigma_val = []
 R0_val    = []
 for idx_sigma , r_sigma in sigma_search.iterrows():
     for idx_beta , r_beta in beta_search.iterrows():
-
         beta_key.append( r_beta['key']   )
         sigma_key.append( r_sigma['key'] )
         beta_val.append( r_beta['value'] )
